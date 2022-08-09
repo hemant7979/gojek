@@ -26,7 +26,7 @@ const userLogin = (req, res, next) => {
 }
 
 const userDetailById = (req, res, next) => {
-    let sqlQuery = "SELECT id, user_type AS userType, email, created_at FROM users WHERE id=" + req.params.id;
+    let sqlQuery = "SELECT id, user_type AS userType, email, post_permission, created_at FROM users WHERE id=" + req.params.id;
       
     dbConnection.query(sqlQuery, (err, result) => {
       if(err) response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
@@ -36,7 +36,7 @@ const userDetailById = (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
     const reqBody = req.body;
-    let sqlQuery = "SELECT id, user_type AS userType, email, created_at FROM users WHERE id=" + req.params.id;
+    let sqlQuery = "SELECT id, user_type AS userType, email, post_permission, created_at FROM users WHERE id=" + req.params.id;
       
     dbConnection.query(sqlQuery, async (err, result) => {
       if(err) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
@@ -57,7 +57,7 @@ const updateUser = async (req, res, next) => {
 }
 
 const deleteById = (req, res, next) => {
-    let selectQuery = "SELECT id, user_type AS userType, email, created_at FROM users WHERE id=" + req.params.id;
+    let selectQuery = "SELECT id, user_type AS userType, email, post_permission, created_at FROM users WHERE id=" + req.params.id;
     dbConnection.query(selectQuery, async (err, result) => {
         if(err) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
   

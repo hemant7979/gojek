@@ -12,8 +12,11 @@
     "debug": "~2.6.9",
     "ejs": "~2.6.1",
     "express": "~4.16.1",
+    "formidable": "^2.0.1",
+    "fs": "^0.0.1-security",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "uniqid": "^5.4.0"
   }
 }

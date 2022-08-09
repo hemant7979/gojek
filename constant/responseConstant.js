@@ -14,5 +14,6 @@ module.exports = {
     POST_UPDATED: "Post updated successfully.",
     PERMISSION_NOT_ALLOW_UPDATE_POST: "Don't have permission to update other post.",
     POST_DELETED: "Post deleted successfully.",
-    ENAIL_ALREADY_EXIST: "Email already exist."
+    ENAIL_ALREADY_EXIST: "Email already exist.",
+    IMAGE_EXTENSION_NOT_MATCH: "Invalid image Extension. allowed extensions are .png, .jpeg, .jpg"
 }
