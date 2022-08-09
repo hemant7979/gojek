@@ -9,12 +9,14 @@ const response = require("../utility/common");
 const addPost = (req, res) => {
     var form = new formidable.IncomingForm();
     form.parse(req, function (err, fields, files) {
-
         const reqBody = fields;
+        var fileName;
         var postObj = {
-            "created_by_user": reqBody.user_id
+            "created_by_user": reqBody.user_id,
+            "post": reqBody.post ? reqBody.post : "",
+            "post_image": null,
+            "title": reqBody.title
         }
-
         let sqlQuery = 'SELECT * FROM users WHERE id=' + `'${reqBody.user_id}'`;
         dbConnection.query(sqlQuery, async (err, results) => {
             if(err) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
@@ -23,42 +25,29 @@ const addPost = (req, res) => {
                 return response.responseHandler(res, false, responseConstant.USER_NOT_FOUND, "");
             } 
 
-            if(files.post != undefined) {
-                const ext = files.post.originalFilename.split( "." ).pop();
+            if(files.postImage != undefined) {
+                const ext = files.postImage.originalFilename.split( "." ).pop();
 
                 if( ext.toLowerCase() == "png" || ext.toLowerCase() == "jpg" || ext.toLowerCase() == "jpeg" ) {
         
-                    var oldpath = files.post.filepath;
-                    var fileName = `${uniqid()}.${ext}`;
+                    var oldpath = files.postImage.filepath;
+                    fileName = `${uniqid()}.${ext}`;
                     var newpath = 'public/images/posts/' + fileName;
+                    postObj.post_image = fileName;
                     fs.rename(oldpath, newpath, function (err) {
                         if (err) response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");;
-                        postObj = {
-                            "created_by_user": reqBody.user_id,
-                            "post_image": fileName,
-                            "title": reqBody.title
-                        }
-                        let insertQuery = "INSERT INTO posts SET ?";
-                        dbConnection.query(insertQuery, postObj,(error, result) => {
-                            if(error) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
-                            return response.responseHandler(res, true, responseConstant.POST_ADDED, "");
-                        });
+                        postObj.post_image = fileName;
                     });
                 } else {
                     return response.responseHandler(res, false, responseConstant.IMAGE_EXTENSION_NOT_MATCH, "");
                 }
-            } else {
-                postObj = {
-                    "created_by_user": reqBody.user_id,
-                    "post": reqBody.post,
-                    "title": reqBody.title
-                }
-                let insertQuery = "INSERT INTO posts SET ?";
-                dbConnection.query(insertQuery, postObj,(error, result) => {
-                    if(error) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
-                    return response.responseHandler(res, true, responseConstant.POST_ADDED, "");
-                });
-            }
+            } 
+            let insertQuery = "INSERT INTO posts SET ?";
+            dbConnection.query(insertQuery, postObj,(error, result) => {
+                if(error) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
+                return response.responseHandler(res, true, responseConstant.POST_ADDED, "");
+            });
+            
         }) 
     })
 }
@@ -75,10 +64,10 @@ const getPostList = (req, res) => {
             permissionArr = result[0].post_permission.split(',');
             found = permissionArr.find(element => element == "read");
         }
-        let sqlQuery = 'SELECT id, created_by_user, updated_by_user, updated_by_other, ( CASE WHEN post_image != "" THEN CONCAT("http://localhost:3000/images/posts/", post_image) ELSE post END ) AS post, created_at, updated_at_user, update_at_other FROM posts WHERE created_by_user=' + `'${params.user_id}'`;
+        let sqlQuery = 'SELECT id, created_by_user, updated_by_user, updated_by_other, ( CASE WHEN post_image != "" THEN CONCAT("http://localhost:3000/images/posts/", post_image) ELSE post_image END ) AS post_image, post, created_at, updated_at_user, update_at_other FROM posts WHERE created_by_user=' + `'${params.user_id}'`;
         
         if(found == 'read' ) {
-            sqlQuery = 'SELECT id,  created_by_user, updated_by_user, updated_by_other, ( CASE WHEN post_image != "" THEN CONCAT("http://localhost:3000/images/posts/", post_image) ELSE post END ) AS post, created_at, updated_at_user, update_at_other FROM posts';
+            sqlQuery = 'SELECT id,  created_by_user, updated_by_user, updated_by_other, ( CASE WHEN post_image != "" THEN CONCAT("http://localhost:3000/images/posts/", post_image) ELSE post_image END ) AS post_image, post, created_at, updated_at_user, update_at_other FROM posts';
         } 
 
         dbConnection.query(sqlQuery, async (err, results) => {
