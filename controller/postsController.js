@@ -64,10 +64,10 @@ const getPostList = (req, res) => {
             permissionArr = result[0].post_permission.split(',');
             found = permissionArr.find(element => element == "read");
         }
-        let sqlQuery = 'SELECT id, created_by_user, updated_by_user, updated_by_other, ( CASE WHEN post_image != "" THEN CONCAT("http://localhost:3000/images/posts/", post_image) ELSE post_image END ) AS post_image, post, created_at, updated_at_user, update_at_other FROM posts WHERE created_by_user=' + `'${params.user_id}'`;
+        let sqlQuery = 'SELECT id, created_by_user, updated_by_user, updated_by_other, ( CASE WHEN post_image != "" THEN CONCAT("http://localhost:3000/images/posts/", post_image) ELSE post_image END ) AS post_image, post, title, created_at, updated_at_user, update_at_other FROM posts WHERE created_by_user=' + `'${params.user_id}'`;
         
         if(found == 'read' ) {
-            sqlQuery = 'SELECT id,  created_by_user, updated_by_user, updated_by_other, ( CASE WHEN post_image != "" THEN CONCAT("http://localhost:3000/images/posts/", post_image) ELSE post_image END ) AS post_image, post, created_at, updated_at_user, update_at_other FROM posts';
+            sqlQuery = 'SELECT id,  created_by_user, updated_by_user, updated_by_other, ( CASE WHEN post_image != "" THEN CONCAT("http://localhost:3000/images/posts/", post_image) ELSE post_image END ) AS post_image, post, title, created_at, updated_at_user, update_at_other FROM posts';
         } 
 
         dbConnection.query(sqlQuery, async (err, results) => {
