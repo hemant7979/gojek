@@ -78,46 +78,91 @@ const getPostList = (req, res) => {
 }
 
 const updatePost = (req, res) => {
-    const reqBody = req.body;
+    var form = new formidable.IncomingForm();
+    form.parse(req, function (err, fields, files) {
+        const reqBody = fields;
+        var post = reqBody.post;
+        var title = reqBody.title;
+        var fileName = "";
 
-    let sqlQuery = 'SELECT id, post_permission FROM users WHERE id=' + `'${reqBody.user_id}'`;
-    dbConnection.query(sqlQuery, async (error, result) => {
-        if(error) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
+        if(files.postImage != undefined) {
+            const ext = files.postImage.originalFilename.split( "." ).pop();
 
-        if( result.length < 1 ) {
-            return response.responseHandler(res, false, responseConstant.USER_NOT_FOUND, "");
-        }
-
-        let permissionArr = result[0].post_permission ? result[0].post_permission.split(','): 0;
-        let found = permissionArr.length ? permissionArr.find(element => element == "update") : "";
-        
-        let updateQuery = "UPDATE posts SET post='"+reqBody.post+"', updated_by_user="+reqBody.user_id+", updated_at_user=NOW() WHERE id="+reqBody.post_id; 
-        
-        if( reqBody.updated_by_other != "" && reqBody.updated_by_other != undefined) {
-            if( found == 'update') {
-                updateQuery = "UPDATE posts SET post='"+reqBody.post+"', updated_by_other='"+reqBody.updated_by_other+"', update_at_other=NOW() WHERE id="+reqBody.post_id;
-                dbConnection.query(updateQuery, (error, results) => {
-                    if(error) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
-                    return response.responseHandler(res, true, responseConstant.POST_UPDATED, "");
-                })
+            if( ext.toLowerCase() == "png" || ext.toLowerCase() == "jpg" || ext.toLowerCase() == "jpeg" ) {
+    
+                var oldpath = files.postImage.filepath;
+                fileName = `${uniqid()}.${ext}`;
+                var newpath = 'public/images/posts/' + fileName;
+                
+                fs.rename(oldpath, newpath, function (err) {
+                    if (err) response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");;
+                });
             } else {
-                return response.responseHandler(res, false, responseConstant.PERMISSION_NOT_ALLOW_UPDATE_POST, "");
+                return response.responseHandler(res, false, responseConstant.IMAGE_EXTENSION_NOT_MATCH, "");
             }
         } 
-        if( reqBody.user_id != "" && reqBody.user_id != undefined) {
-            let sqlQuery = 'SELECT id, post FROM posts WHERE id=' + `'${reqBody.post_id}'`+"AND created_by_user="+reqBody.user_id;
-            dbConnection.query(sqlQuery, async (error, result) => {
-                if(error) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
-                if( result.length > 0 ) {
-                    dbConnection.query(updateQuery, (error, results) => {
-                        if(error) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
-                        return response.responseHandler(res, true, responseConstant.POST_UPDATED, "");
-                    })
-                } else {
-                    return response.responseHandler(res, false, responseConstant.PERMISSION_NOT_ALLOW_UPDATE_POST, "");
-                } 
-            })
-        }
+        let sqlQuery = 'SELECT id, post_permission FROM users WHERE id=' + `'${reqBody.user_id}'`;
+        dbConnection.query(sqlQuery, async (error, result) => {
+            if(error) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
+
+            if( result.length < 1 ) {
+                return response.responseHandler(res, false, responseConstant.USER_NOT_FOUND, "");
+            }
+
+            let permissionArr = result[0].post_permission ? result[0].post_permission.split(','): 0;
+            let found = permissionArr.length ? permissionArr.find(element => element == "update") : "";
+            
+        //     let updateQuery = "UPDATE posts SET post='"+reqBody.post+"', title='"+reqBody.title+"', post_image='"+fileName+"', updated_by_user="+reqBody.user_id+", updated_at_user=NOW() WHERE id="+reqBody.post_id; 
+            
+        //     if( reqBody.updated_by_other != "" && reqBody.updated_by_other != undefined) {
+        //         if( found == 'update') {
+        //             updateQuery = "UPDATE posts SET post='"+reqBody.post+"', title='"+reqBody.title+"', post_image='"+fileName+"',updated_by_other='"+reqBody.updated_by_other+"', update_at_other=NOW() WHERE id="+reqBody.post_id;
+        //             dbConnection.query(updateQuery, (error, results) => {
+        //                 if(error) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
+        //                 return response.responseHandler(res, true, responseConstant.POST_UPDATED, "");
+        //             })
+        //         } else {
+        //             return response.responseHandler(res, false, responseConstant.PERMISSION_NOT_ALLOW_UPDATE_POST, "");
+        //         }
+        //     }
+       
+            if( reqBody.user_id != "" && reqBody.user_id != undefined) {
+                let sqlQuery = 'SELECT id, post, post_image, title FROM posts WHERE id=' + `'${reqBody.post_id}'`+"AND created_by_user="+reqBody.user_id;
+                dbConnection.query(sqlQuery, async (error, result) => {
+                    if(error) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
+                    if( result.length > 0 ) {
+                        if( post == "" || post == undefined) {
+                            post = result[0].post; 
+                        }
+                        if( title == "" || title == undefined) {
+                            title = result[0].title; 
+                        }
+                        if(fileName == "") {
+                            fileName = result[0].post_image;
+                        }
+                        let updateQuery = "UPDATE posts SET post='"+post+"', title='"+title+"', post_image='"+fileName+"', updated_by_user="+reqBody.user_id+", updated_at_user=NOW() WHERE id="+reqBody.post_id; 
+            
+                        if( reqBody.updated_by_other != "" && reqBody.updated_by_other != undefined) {
+                            if( found == 'update') {
+                                updateQuery = "UPDATE posts SET post='"+post+"', title='"+title+"', post_image='"+fileName+"',updated_by_other='"+reqBody.updated_by_other+"', update_at_other=NOW() WHERE id="+reqBody.post_id;
+                                dbConnection.query(updateQuery, (error, results) => {
+                                    if(error) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
+                                    return response.responseHandler(res, true, responseConstant.POST_UPDATED, "");
+                                })
+                            } else {
+                                return response.responseHandler(res, false, responseConstant.PERMISSION_NOT_ALLOW_UPDATE_POST, "");
+                            }
+                        } 
+                        dbConnection.query(updateQuery, (error, results) => {
+                            if(error) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
+                            return response.responseHandler(res, true, responseConstant.POST_UPDATED, "");
+                        })
+                    } else {
+                        return response.responseHandler(res, false, responseConstant.PERMISSION_NOT_ALLOW_UPDATE_POST, "");
+                    } 
+                })
+            }
+        })
     })
 }
 
