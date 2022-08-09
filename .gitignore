@@ -1,0 +1,5 @@
+#Not push to git
+node_modules
+
+# Optional npm cache directory
+.npm
