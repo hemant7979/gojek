@@ -54,7 +54,7 @@ const userSignUP = async (req, res, next) => {
 }
 
 const getAllUsers = async (req, res, next) => {
-    let sqlQuery = 'SELECT id, name,user_type AS userType, email, created_at FROM users WHERE user_type= 7';
+    let sqlQuery = 'SELECT id, name,user_type AS userType, email, post_permission, created_at FROM users WHERE user_type= 7';
     dbConnection.query(sqlQuery, async (err, results) => {
         if(err) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
         return response.responseHandler(res, true, responseConstant.USER_LIST, results);
@@ -62,7 +62,7 @@ const getAllUsers = async (req, res, next) => {
 }
 
 const userDetailById = (req, res, next) => {
-    let sqlQuery = "SELECT id, name, user_type AS userType, email, created_at FROM users WHERE id=" + req.params.id;
+    let sqlQuery = "SELECT id, name, user_type AS userType, email, post_permission, created_at FROM users WHERE id=" + req.params.id;
       
     dbConnection.query(sqlQuery, (err, result) => {
       if(err) return response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
@@ -72,7 +72,7 @@ const userDetailById = (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
     const reqBody = req.body;
-    let sqlQuery = "SELECT id, user_type AS userType, email, created_at FROM users WHERE id=" + reqBody.id;
+    let sqlQuery = "SELECT id, user_type AS userType, email, post_permission, created_at FROM users WHERE id=" + reqBody.id;
       
     dbConnection.query(sqlQuery, async (err, result) => {
       if(err) response.responseHandler(res, false, responseConstant.SOMETHING_WENT_WRONG, "");
